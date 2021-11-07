@@ -48,6 +48,9 @@ ros::Publisher pubEdgePointsSharp;
 ros::Publisher pubEdgePointsLessSharp;
 ros::Publisher pubPlanarPointsFlat;
 ros::Publisher pubPlanarPointsLessFlat;
+ros::Publisher pubColorEdgePlanarPoints;
+ros::Publisher pubColorLessEdgePlanarPoints;
+
 std::vector<ros::Publisher> pubEachScan;
 
 
@@ -251,6 +254,71 @@ const pcl::PointCloud<PointType>::Ptr &laserCloud, const int &sp, const int &ep)
   }
 }
 
+void pub_color( const pcl::PointCloud<PointType> &edgePointsSharp, 
+                  const pcl::PointCloud<PointType> &edgePointsLessSharp,
+                  const pcl::PointCloud<PointType> &planarPointsFlat,
+                  const pcl::PointCloud<PointType> &planarPointsLessFlat, const ros::Time &stamp)
+{
+  
+  pcl::PointXYZRGB point;
+  pcl::PointCloud<pcl::PointXYZRGB> sharp_flat_points;
+  pcl::PointCloud<pcl::PointXYZRGB> less_sharp_flat_points;
+  for(int i=0; i < edgePointsSharp.size(); ++i)
+  {
+    point.x = edgePointsSharp.points[i].x;
+    point.y = edgePointsSharp.points[i].y;
+    point.z = edgePointsSharp.points[i].z;
+    point.r = 255;
+    point.g = 0;
+    point.b = 0;
+    sharp_flat_points.push_back(point);
+  }
+  for(int i=0; i < planarPointsFlat.size(); ++i)
+  {
+    point.x = planarPointsFlat.points[i].x;
+    point.y = planarPointsFlat.points[i].y;
+    point.z = planarPointsFlat.points[i].z;
+    point.r = 0;
+    point.g = 0;
+    point.b = 255;
+    sharp_flat_points.push_back(point);
+  }
+  // /////////////////////////////////////////////
+  for(int i=0; i < edgePointsLessSharp.size(); ++i)
+  {
+    point.x = edgePointsLessSharp.points[i].x;
+    point.y = edgePointsLessSharp.points[i].y;
+    point.z = edgePointsLessSharp.points[i].z;
+    point.r = 255;
+    point.g = 0;
+    point.b = 0;
+    less_sharp_flat_points.push_back(point);
+  }
+  for(int i=0; i < planarPointsLessFlat.size(); ++i)
+  {
+    point.x = planarPointsLessFlat.points[i].x;
+    point.y = planarPointsLessFlat.points[i].y;
+    point.z = planarPointsLessFlat.points[i].z;
+    point.r = 0;
+    point.g = 0;
+    point.b = 255;
+    less_sharp_flat_points.push_back(point);
+  }
+  sensor_msgs::PointCloud2 sharp_flat_points2;
+  pcl::toROSMsg(sharp_flat_points, sharp_flat_points2);
+  sharp_flat_points2.header.stamp = stamp;
+  sharp_flat_points2.header.frame_id = "/aft_extract";
+  pubColorEdgePlanarPoints.publish(sharp_flat_points2);
+
+  sensor_msgs::PointCloud2 less_sharp_flat_points2;
+  pcl::toROSMsg(less_sharp_flat_points, less_sharp_flat_points2);
+  less_sharp_flat_points2.header.stamp = stamp;
+  less_sharp_flat_points2.header.frame_id = "/aft_extract";
+  pubColorLessEdgePlanarPoints.publish(less_sharp_flat_points2);
+
+};
+
+
 
 void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg) {
   if (!systemInited) {
@@ -298,7 +366,7 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg) {
     scanStartInd[i] = laserCloud->size() + 5;
     *laserCloud += laserCloudScans[i];
     scanEndInd[i] = laserCloud->size() - 6;
-  }
+  } 
   // printf("prepare time %f \n", t_prepare.toc());
 
   
@@ -394,43 +462,47 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg) {
     ros_hdr.frame_id = "/aft_extract";
     VisualizeCurvature(cloudCurvature, cloudLabel, *laserCloud, ros_hdr);
   }
-
+  const auto& stamp = laserCloudMsg->header.stamp;
   sensor_msgs::PointCloud2 laserCloudOutMsg;
   pcl::toROSMsg(*laserCloud, laserCloudOutMsg);
-  laserCloudOutMsg.header.stamp = laserCloudMsg->header.stamp;
+  laserCloudOutMsg.header.stamp = stamp;
   laserCloudOutMsg.header.frame_id = "/aft_extract";
   pubLaserCloud.publish(laserCloudOutMsg);
 
   sensor_msgs::PointCloud2 edgePointsSharpMsg;
   pcl::toROSMsg(edgePointsSharp, edgePointsSharpMsg);
-  edgePointsSharpMsg.header.stamp = laserCloudMsg->header.stamp;
+  edgePointsSharpMsg.header.stamp = stamp;
   edgePointsSharpMsg.header.frame_id = "/aft_extract";
   pubEdgePointsSharp.publish(edgePointsSharpMsg);
 
   sensor_msgs::PointCloud2 edgePointsLessSharpMsg;
   pcl::toROSMsg(edgePointsLessSharp, edgePointsLessSharpMsg);
-  edgePointsLessSharpMsg.header.stamp = laserCloudMsg->header.stamp;
+  edgePointsLessSharpMsg.header.stamp = stamp;
   edgePointsLessSharpMsg.header.frame_id = "/aft_extract";
   pubEdgePointsLessSharp.publish(edgePointsLessSharpMsg);
 
   sensor_msgs::PointCloud2 planarPointsFlat2;
   pcl::toROSMsg(planarPointsFlat, planarPointsFlat2);
-  planarPointsFlat2.header.stamp = laserCloudMsg->header.stamp;
+  planarPointsFlat2.header.stamp = stamp;
   planarPointsFlat2.header.frame_id = "/aft_extract";
   pubPlanarPointsFlat.publish(planarPointsFlat2);
 
   sensor_msgs::PointCloud2 planarPointsLessFlat2;
   pcl::toROSMsg(planarPointsLessFlat, planarPointsLessFlat2);
-  planarPointsLessFlat2.header.stamp = laserCloudMsg->header.stamp;
+  planarPointsLessFlat2.header.stamp = stamp;
   planarPointsLessFlat2.header.frame_id = "/aft_extract";
   pubPlanarPointsLessFlat.publish(planarPointsLessFlat2);
+  // ////////////////////////////////////////////////////////
+  // publish color
+  // ////////////////////////////////////////////////////////
+  pub_color(edgePointsSharp, edgePointsLessSharp, planarPointsFlat, planarPointsLessFlat, stamp);
 
   // pub each scam
   if (b_PUB_EACH_LINE) {
     for (int i = 0; i < N_SCANS; i++) {
       sensor_msgs::PointCloud2 scanMsg;
       pcl::toROSMsg(laserCloudScans[i], scanMsg);
-      scanMsg.header.stamp = laserCloudMsg->header.stamp;
+      scanMsg.header.stamp = stamp;
       scanMsg.header.frame_id = "/aft_extract";
       pubEachScan[i].publish(scanMsg);
     }
@@ -473,6 +545,12 @@ int main(int argc, char **argv) {
 
   pubPlanarPointsLessFlat =
       nh.advertise<sensor_msgs::PointCloud2>("/feature_less_flat", 100);
+
+  pubColorEdgePlanarPoints = 
+      nh.advertise<sensor_msgs::PointCloud2>("/feature_color_sharp_flat", 100);
+  
+  pubColorLessEdgePlanarPoints = 
+      nh.advertise<sensor_msgs::PointCloud2>("/feature_less_color_sharp_flat", 100);
 
   
   if (b_PUB_EACH_LINE) {
