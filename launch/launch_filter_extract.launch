@@ -1,0 +1,19 @@
+<launch>
+    <param name="scan_line" type="int" value="6" />
+
+    <!-- if 1, do mapping 10 Hz, if 2, do mapping 5 Hz. Suggest to use 1, it will adjust frequence automaticlly -->
+    <!-- remove too closed points -->
+    <param name="minimum_range" type="double" value="0.3"/>
+    <param name="threshold_flat" type="double" value="0.01"/>
+    <param name="threshold_sharp" type="double" value="0.1"/>
+    <param name="mapping_line_resolution" type="double" value="0.3"/>
+    <param name="mapping_plane_resolution" type="double" value="0.6"/>
+
+    <node pkg="filter_extract_feature" type="extract_feature_node" name="extract_feature_node" output="screen" >
+        <remap from="/livox_undistort" to="/livox_pcl0" />
+    </node>
+    <node pkg="filter_extract_feature" type="filter_node" name="filter_node" output="screen" />
+    <node pkg="rviz" type="rviz" name="rviz_filter_and_extract" args="-d $(find filter_extract_feature)/config/show.rviz"  />
+</launch>
+
+
