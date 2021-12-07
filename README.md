@@ -37,7 +37,7 @@ roslaunch filter_extract_feature launch_filter_extract.launch
 ```
 
 ## 三、效果
-<p align="center"><img src="./resources/edge_planar_points.png" width=50%></p>
+<p align="center"><img src="./resources/edge_planar_points.gif" width=50%></p>
 <h6 align="center">提取边缘点(红色)和平面点(蓝色)</h6>
 
 ## 四、参考资料
