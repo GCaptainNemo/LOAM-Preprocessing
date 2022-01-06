@@ -4,7 +4,7 @@
 
 其中点云滤波往往需要根据激光雷达具体的扫描方式、型号、特性以及后续任务等进行调整<sup>[4]</sup>；在点云特征提取方面，论文<sup>[3]</sup>中率先提出了将点云曲率较大的边缘点(Edge Points)和曲率较小的平面点(Planar Points)作为点云的特征，进行后续ICP匹配，从而减少内存消耗量，后续LOAM论文基本沿用这一方法。
 
-本仓库参考Horizon loam<sup>[5]</sup>中的点云滤波和特征点提取方法,其中Horizon激光雷达CustomMsg的Tag信息<sup><[7]/sup>可以用于基本的滤波操作。
+本仓库参考Horizon loam<sup>[5]</sup>中的点云滤波和特征点提取方法,其中Horizon激光雷达CustomMsg的Tag信息<sup>[7]</sup>可以用于基本的滤波操作。
 
 调试环境：
 
